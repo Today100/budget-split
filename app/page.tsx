@@ -1,19 +1,29 @@
+// app/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '../context/AuthContext'; // Adjust path if necessary
 
 export default function SignInPage() {
   const [error, setError] = useState<string>('');
   const router = useRouter();
+  const { user } = useAuth();
+
+  // Watch for the user object to populate after the Google redirect
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   const handleGoogleSignIn = async () => {
     try {
       const provider = new GoogleAuthProvider();
+      // This will redirect the browser away from your app
       await signInWithRedirect(auth, provider);
-      router.push('/dashboard');
     } catch (err: any) {
       setError(err.message);
     }
