@@ -6,6 +6,11 @@ import { useAddReceipt, LineItem } from './AddReceiptContext';
 
 export default function Step2Manual() {
   const { receiptData, setReceiptData, setStep, roommates } = useAddReceipt();
+
+  const subtotal = receiptData.items.reduce((acc, item) => acc + (item.qty * item.unitPrice), 0);
+  const taxTotal = receiptData.items.reduce((acc, item) => acc + (item.isTaxed ? item.qty * item.unitPrice * (item.taxPercent / 100) : 0), 0);
+  const grandTotal = subtotal + taxTotal;
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -166,6 +171,27 @@ export default function Step2Manual() {
           Move on to allocation →
         </button>
       </div>
+
+      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-2 text-sm mt-4">
+        <div className="flex justify-between text-gray-500">
+          <span>Subtotal</span>
+          <span>${subtotal.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-gray-500">
+          <span>Tax</span>
+          <span>${taxTotal.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between font-bold text-lg text-gray-900 border-t border-gray-200 pt-2 mt-2">
+          <span>Total</span>
+          <span>${grandTotal.toFixed(2)}</span>
+        </div>
+      </div>
+
+      <button onClick={() => setStep(3)} className="w-full py-3 bg-black text-white rounded-lg font-bold mt-6">
+        Next: Assign Items
+      </button>
     </div>
+
+    
   );
 }

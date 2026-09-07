@@ -1,39 +1,76 @@
 // app/dashboard/add/page.tsx
 'use client';
 
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../../lib/firebase';
 import { AddReceiptProvider, useAddReceipt } from './AddReceiptContext';
 import Step1Method from './Step1Method';
 import Step2Manual from './Step2Manual';
 import Step3Allocation from './Step3Allocation';
-import Step4Summary from './Step4Summary'; // <-- Import
+import Step4Summary from './Step4Summary';
 
-function StepRouter() {
+// 1. Inner component that renders the correct step
+function FormSteps() {
   const { step } = useAddReceipt();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center space-x-2 text-sm text-gray-500 mb-8">
-        <span className={step >= 1 ? 'font-bold text-black' : ''}>1. Method</span>
-        <span>→</span>
-        <span className={step >= 2 ? 'font-bold text-black' : ''}>2. Details</span>
-        <span>→</span>
-        <span className={step >= 3 ? 'font-bold text-black' : ''}>3. Allocation</span>
-        <span>→</span>
-        <span className={step >= 4 ? 'font-bold text-black' : ''}>4. Summary</span>
-      </div>
-
+    <div className="w-full">
       {step === 1 && <Step1Method />}
       {step === 2 && <Step2Manual />}
       {step === 3 && <Step3Allocation />}
-      {step === 4 && <Step4Summary />}      {/* <-- Connect Step 4 */}
+      {step === 4 && <Step4Summary />}
     </div>
   );
 }
 
+// 2. Wrapper that checks the URL for an ID and fetches existing data
+function ReceiptFormWrapper() {
+  const searchParams = useSearchParams();
+  const receiptId = searchParams.get('id');
+  
+  const [initialData, setInitialData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(!!receiptId);
+
+  useEffect(() => {
+    if (!receiptId) {
+      setIsLoading(false);
+      return;
+    }
+    
+    const fetchReceipt = async () => {
+      try {
+        const docSnap = await getDoc(doc(db, 'receipts', receiptId));
+        if (docSnap.exists()) {
+          setInitialData(docSnap.data());
+        }
+      } catch (error) {
+        console.error("Error fetching receipt:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchReceipt();
+  }, [receiptId]);
+
+  if (isLoading) {
+    return <div className="text-center py-12 text-gray-500">Loading receipt details...</div>;
+  }
+
+  return (
+    <AddReceiptProvider initialData={initialData} receiptId={receiptId || undefined}>
+      <FormSteps />
+    </AddReceiptProvider>
+  );
+}
+
+// 3. Main export wrapped in Suspense (required by Next.js when using useSearchParams)
 export default function AddReceiptPage() {
   return (
-    <AddReceiptProvider>
-      <StepRouter />
-    </AddReceiptProvider>
+    <Suspense fallback={<div className="text-center py-12 text-gray-500">Loading...</div>}>
+      <ReceiptFormWrapper />
+    </Suspense>
   );
 }

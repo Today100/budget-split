@@ -48,19 +48,10 @@ type AddReceiptContextType = {
 const AddReceiptContext = createContext<AddReceiptContextType | undefined>(undefined);
 
 // Update the Provider props to accept initialData and receiptId
-export function AddReceiptProvider({ 
-  children, 
-  initialData, 
-  receiptId 
-}: { 
-  children: ReactNode; 
-  initialData?: ReceiptState; 
-  receiptId?: string; 
-}) {
+export function AddReceiptProvider({ children, initialData, receiptId }: { children: ReactNode; initialData?: ReceiptState; receiptId?: string; }) {
   const { user } = useAuth();
   const { groupId } = useGroup();
   
-  // If we pass in initialData, skip to Step 2!
   const [step, setStep] = useState(initialData ? 2 : 1);
   const [receiptData, setReceiptData] = useState<ReceiptState>({
     ...emptyState,
@@ -68,7 +59,7 @@ export function AddReceiptProvider({
     payers: initialData?.payers || [],
     allocations: initialData?.allocations || {},
     items: initialData?.items || []
-    });
+  });
   const [isScanning, setIsScanning] = useState(false);
   const [roommates, setRoommates] = useState<string[]>([]);
 
@@ -85,30 +76,72 @@ export function AddReceiptProvider({
     return () => unsubscribe();
   }, [user]);
 
-  const simulateScan = (file: File) => {
+  const simulateScan = async (file: File) => {
     setIsScanning(true);
-    // Simulate a 2-second AI OCR processing delay
-    setTimeout(() => {
+    
+    try {
+      // 1. Convert the File to a Base64 string
+      const base64Image = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+          const result = reader.result?.toString();
+          if (result) {
+            // Strip off the "data:image/jpeg;base64," prefix
+            resolve(result.split(',')[1]);
+          } else {
+            reject(new Error("Failed to read file"));
+          }
+        };
+        reader.onerror = error => reject(error);
+      });
+
+      // 2. Send it to our Next.js API route
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base64Image, mimeType: file.type || 'application/pdf' })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        console.error("Backend Error:", errorData);
+        throw new Error(errorData.error || `API returned ${res.status}`);
+      }
+      const parsedData = await res.json();
+
+      // 3. Map the Gemini JSON output to our app's structure
+      const itemsWithIds = (parsedData.items || []).map((item: any) => ({
+        id: Date.now().toString() + Math.random().toString(),
+        name: item.name || 'Unknown Item',
+        qty: item.qty || 1,
+        unitPrice: item.unitPrice || 0,
+        isTaxed: item.isTaxed || false,
+        taxPercent: 13 // Default to Ontario tax
+      }));
+
+      // 4. Update the state and move to Step 2
       setReceiptData({
         ...receiptData,
-        storeName: 'Mock Grocery Store',
-        date: new Date().toISOString().split('T')[0],
-        time: '14:30',
-        items: [
-          { id: '1', name: 'Apples', qty: 1, unitPrice: 4.99, isTaxed: false, taxPercent: 13 },
-          { id: '2', name: 'Paper Towels', qty: 2, unitPrice: 8.99, isTaxed: true, taxPercent: 13 }
-        ]
+        storeName: parsedData.storeName || '',
+        date: parsedData.date || new Date().toISOString().split('T')[0],
+        time: parsedData.time || '12:00',
+        items: itemsWithIds,
       });
+      
+      setStep(2);
+      
+    } catch (error) {
+      console.error("Scan error:", error);
+      alert("Failed to read receipt. Please enter the details manually.");
+      setStep(2); // Bump them to manual entry if AI fails
+    } finally {
       setIsScanning(false);
-      setStep(2); // Move to manual input automatically
-    }, 2000);
+    }
   };
 
   return (
-    <AddReceiptContext.Provider value={{ 
-      step, setStep, receiptData, setReceiptData, isScanning, simulateScan, roommates, 
-      receiptId: receiptId || null // <-- Pass it down
-    }}>
+    <AddReceiptContext.Provider value={{ step, setStep, receiptData, setReceiptData, isScanning, simulateScan, roommates, receiptId: receiptId || null }}>
       {children}
     </AddReceiptContext.Provider>
   );

@@ -3,12 +3,8 @@
 
 import { useAddReceipt, LineItem } from './AddReceiptContext';
 
-
-
 export default function Step3Allocation() {
-
   const { receiptData, setReceiptData, setStep, roommates } = useAddReceipt();
-//   const { receiptData, setReceiptData, setStep } = useAddReceipt();
 
   const calculateFinalPrice = (item: LineItem) => {
     const base = item.qty * item.unitPrice;
@@ -19,8 +15,8 @@ export default function Step3Allocation() {
     const currentAllocations = receiptData.allocations[itemId] || [];
     
     let newAllocation: string[] = [];
-    // If already selected, deselect it (array becomes empty -> split). 
-    // If not selected, set it to ONLY this person (exclusive selection).
+    // If already selected, deselect it (empty array = split among everyone)
+    // If not selected, assign exclusively to this person
     if (!currentAllocations.includes(person)) {
       newAllocation = [person];
     }
@@ -41,14 +37,19 @@ export default function Step3Allocation() {
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="p-4 font-medium text-gray-600">Item</th>
-              <th className="p-4 font-medium text-gray-600 w-32">Final Price</th>
+              <th className="p-4 font-medium text-gray-600 w-44">Final Price</th>
               <th className="p-4 font-medium text-gray-600">Allocation</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {receiptData.items.map((item) => {
               const finalPrice = calculateFinalPrice(item);
-              const selectedPerson = receiptData.allocations[item.id]?.[0]; // Max 1 person for now based on your rules
+              const selectedPerson = receiptData.allocations[item.id]?.[0];
+              
+              // If assigned to a single person, divisor is 1.
+              // If not assigned, split equally among all roommates (or 1 if no roommates registered yet)
+              const splitDivisor = selectedPerson ? 1 : Math.max(roommates.length, 1);
+              const perPersonShare = finalPrice / splitDivisor;
 
               return (
                 <tr key={item.id} className="hover:bg-gray-50 transition-colors">
@@ -67,18 +68,28 @@ export default function Step3Allocation() {
                     </div>
                   </td>
                   
-                  {/* Column 2: Final Price */}
-                  <td className="p-4 font-semibold text-gray-900">
-                    ${finalPrice.toFixed(2)}
+                  {/* Column 2: Final Price & Per-Person Calculation */}
+                  <td className="p-4 align-middle">
+                    <div className="font-semibold text-gray-900">
+                      ${finalPrice.toFixed(2)}
+                    </div>
+                    <div className="text-xs font-medium text-emerald-600 mt-0.5">
+                      {selectedPerson ? (
+                        `$${finalPrice.toFixed(2)} for ${selectedPerson}`
+                      ) : (
+                        `$${perPersonShare.toFixed(2)} / person`
+                      )}
+                    </div>
                   </td>
                   
                   {/* Column 3: Allocation Toggles */}
-                  <td className="p-4">
+                  <td className="p-4 align-middle">
                     <div className="flex flex-wrap items-center gap-2">
-                      {roommates.map(person => {
+                      {roommates.map((person) => {
                         const isSelected = selectedPerson === person;
                         return (
                           <button
+                            type="button"
                             key={person}
                             onClick={() => toggleAllocation(item.id, person)}
                             className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all border ${
@@ -92,10 +103,10 @@ export default function Step3Allocation() {
                         );
                       })}
                       
-                      {/* Visual indicator for split */}
+                      {/* Visual indicator when split equally */}
                       {!selectedPerson && (
                         <span className="text-xs text-gray-400 italic ml-2">
-                          Splitting equally
+                          (Splitting equally)
                         </span>
                       )}
                     </div>
@@ -109,12 +120,14 @@ export default function Step3Allocation() {
 
       <div className="flex justify-between items-center">
         <button 
+          type="button"
           onClick={() => setStep(2)}
           className="px-6 py-3 text-gray-600 font-medium hover:text-black transition-colors"
         >
           ← Back to Edit
         </button>
         <button 
+          type="button"
           onClick={() => setStep(4)}
           className="px-6 py-3 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors"
         >

@@ -1,4 +1,3 @@
-// app/dashboard/add/Step4Summary.tsx
 'use client';
 
 import { useState } from 'react';
@@ -9,8 +8,6 @@ import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/fi
 import { useAddReceipt, LineItem } from './AddReceiptContext';
 import { useGroup } from '../../../context/GroupContext';
 
-
-
 export default function Step4Summary() {
   const { receiptData, setStep, roommates, receiptId } = useAddReceipt();
   const { user } = useAuth();
@@ -18,41 +15,41 @@ export default function Step4Summary() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 1. Helper to calculate final price per item
   const calculateFinalPrice = (item: LineItem) => {
     const base = item.qty * item.unitPrice;
     return item.isTaxed ? base * (1 + (item.taxPercent / 100)) : base;
   };
 
-  // 2. Calculate Total Receipt Cost
   const totalCost = receiptData.items.reduce((sum, item) => sum + calculateFinalPrice(item), 0);
 
   // 3. Determine Balances (Paid - Share = Balance)
   const balances: Record<string, number> = {};
   roommates.forEach(rm => (balances[rm] = 0));
 
-  // Subtract shares (what people owe for their items)
+  // Add payments safely using (balances[payer] || 0)
+  const payers = receiptData.payers.length > 0 ? receiptData.payers : ["Grace (Me)"];
+  const splitPayment = totalCost / payers.length;
+  payers.forEach(payer => {
+    balances[payer] = (balances[payer] || 0) + splitPayment;
+  });
+
+  // Subtract shares safely
   receiptData.items.forEach((item) => {
     const finalPrice = calculateFinalPrice(item);
     const allocatedTo = receiptData.allocations[item.id]?.[0];
 
     if (allocatedTo) {
-      balances[allocatedTo] -= finalPrice;
+      balances[allocatedTo] = (balances[allocatedTo] || 0) - finalPrice;
     } else {
-      const splitAmount = finalPrice / roommates.length;
-      roommates.forEach(rm => { balances[rm] -= splitAmount; });
+      const splitDivisor = Math.max(roommates.length, 1);
+      const splitAmount = finalPrice / splitDivisor;
+      roommates.forEach(rm => { 
+        balances[rm] = (balances[rm] || 0) - splitAmount; 
+      });
     }
   });
 
-  // Add payments (what people already paid at the register)
-  // If no payers selected, assume Grace paid for fallback
-  const payers = receiptData.payers.length > 0 ? receiptData.payers : ["Grace (Me)"];
-  const splitPayment = totalCost / payers.length;
-  payers.forEach(payer => {
-    balances[payer] += splitPayment;
-  });
-
-  // 4. Match Debtors (negative balance) to Creditors (positive balance)
+  // 4. Match Debtors to Creditors
   const debtors = Object.entries(balances)
     .filter(([_, amount]) => amount < -0.01)
     .map(([person, amount]) => ({ person, amount: Math.abs(amount) }));
@@ -63,8 +60,7 @@ export default function Step4Summary() {
 
   const settlements: { from: string; to: string; amount: number }[] = [];
   
-  let i = 0;
-  let j = 0;
+  let i = 0; let j = 0;
   while (i < debtors.length && j < creditors.length) {
     const debtor = debtors[i];
     const creditor = creditors[j];
@@ -99,10 +95,8 @@ export default function Step4Summary() {
 
     try {
       if (receiptId) {
-        // If editing, UPDATE the existing document
         await updateDoc(doc(db, 'receipts', receiptId), payload);
       } else {
-        // If creating new, ADD a new document
         await addDoc(collection(db, 'receipts'), {
           ...payload,
           createdAt: serverTimestamp()
@@ -117,7 +111,6 @@ export default function Step4Summary() {
 
   return (
     <div className="space-y-6">
-      {/* Receipt Overview */}
       <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex justify-between items-center">
         <div>
           <h2 className="text-xl font-bold text-gray-900">{receiptData.storeName || 'Unnamed Receipt'}</h2>
@@ -128,7 +121,6 @@ export default function Step4Summary() {
         </div>
       </div>
 
-      {/* Settlements Breakdown */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="bg-gray-50 p-4 border-b border-gray-200">
           <h3 className="font-semibold text-gray-900">Who owes who</h3>
