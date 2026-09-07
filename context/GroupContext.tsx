@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { db } from '../lib/firebase';
-import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, arrayUnion } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, arrayUnion, getDoc } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 
 type GroupContextType = {
@@ -22,7 +22,10 @@ export function GroupProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     
     // Check if the user's UID is in any group's 'members' array
     const q = query(collection(db, 'groups'), where('members', 'array-contains', user.uid));
@@ -42,15 +45,37 @@ export function GroupProvider({ children }: { children: ReactNode }) {
 
   const createGroup = async (name: string) => {
     if (!user) return;
-    await addDoc(collection(db, 'groups'), { name, members: [user.uid] });
+    try {
+      await addDoc(collection(db, 'groups'), { name, members: [user.uid] });
+    } catch (error) {
+      console.error("Error creating group:", error);
+      throw error;
+    }
   };
 
   const joinGroup = async (id: string) => {
     if (!user) return;
-    await updateDoc(doc(db, 'groups', id), { members: arrayUnion(user.uid) });
+    
+    try {
+      const groupRef = doc(db, 'groups', id.trim()); // trim to remove accidental spaces
+      
+      // 1. Check if the group actually exists first
+      const groupSnap = await getDoc(groupRef);
+      if (!groupSnap.exists()) {
+        throw new Error("Invalid code. No group found with that ID.");
+      }
+
+      // 2. Add the user to the array
+      await updateDoc(groupRef, { members: arrayUnion(user.uid) });
+      
+    } catch (error: any) {
+      console.error("Error joining group:", error);
+      // Re-throw so the UI component can catch it and show an error message
+      throw new Error(error.message || "Failed to join group"); 
+    }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading group data...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-500">Loading group data...</div>;
 
   return (
     <GroupContext.Provider value={{ groupId, groupName, joinGroup, createGroup }}>
