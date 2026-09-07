@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { auth } from '../lib/firebase';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
 export default function SignInPage() {
@@ -12,7 +12,7 @@ export default function SignInPage() {
   const handleGoogleSignIn = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message);
