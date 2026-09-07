@@ -3,49 +3,36 @@
 
 import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
-import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 
 export default function SignInPage() {
   const [error, setError] = useState<string>('');
-  const [isProcessing, setIsProcessing] = useState(true); // Start in loading state
+  const [isProcessing, setIsProcessing] = useState(false); // Start false for popup
   const router = useRouter();
   const { user } = useAuth();
 
   useEffect(() => {
-    // 1. If AuthContext already has the user, go straight to dashboard
+    // If AuthContext already has the user, go straight to dashboard
     if (user) {
       router.push('/dashboard');
-      return;
     }
-
-    // 2. Otherwise, explicitly check if we just returned from a Google redirect
-    const resolveRedirect = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result?.user) {
-          router.push('/dashboard');
-        } else {
-          // No redirect result and no user, safe to show the login button
-          setIsProcessing(false);
-        }
-      } catch (err: any) {
-        console.error("Redirect Error:", err);
-        setError(err.message);
-        setIsProcessing(false);
-      }
-    };
-
-    resolveRedirect();
   }, [user, router]);
 
   const handleGoogleSignIn = async () => {
     try {
       setIsProcessing(true);
+      setError('');
       const provider = new GoogleAuthProvider();
-      await signInWithRedirect(auth, provider);
+      
+      // Await the popup directly; the promise resolves when they finish signing in
+      await signInWithPopup(auth, provider);
+      
+      // Automatically route them to the dashboard upon successful auth
+      router.push('/dashboard');
     } catch (err: any) {
+      console.error("Auth Error:", err);
       setError(err.message);
       setIsProcessing(false);
     }
