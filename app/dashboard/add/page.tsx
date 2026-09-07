@@ -16,7 +16,8 @@ function FormSteps() {
   const { step } = useAddReceipt();
 
   return (
-    <div className="w-full">
+    // Added responsive padding, max-width, and centering
+    <div className="w-full max-w-5xl mx-auto p-4 md:p-8">
       {step === 1 && <Step1Method />}
       {step === 2 && <Step2Manual />}
       {step === 3 && <Step3Allocation />}
@@ -56,7 +57,8 @@ function ReceiptFormWrapper() {
   }, [receiptId]);
 
   if (isLoading) {
-    return <div className="text-center py-12 text-gray-500">Loading receipt details...</div>;
+    // Added padding for mobile
+    return <div className="text-center py-12 px-4 text-gray-500">Loading receipt details...</div>;
   }
 
   return (
@@ -69,7 +71,8 @@ function ReceiptFormWrapper() {
 // 3. Main export wrapped in Suspense (required by Next.js when using useSearchParams)
 export default function AddReceiptPage() {
   return (
-    <Suspense fallback={<div className="text-center py-12 text-gray-500">Loading...</div>}>
+    // Added padding for mobile loading state
+    <Suspense fallback={<div className="text-center py-12 px-4 text-gray-500">Loading...</div>}>
       <ReceiptFormWrapper />
     </Suspense>
   );

@@ -28,7 +28,6 @@ export default function RoommatesPage() {
       snapshot.forEach((doc) => {
         rmData.push({ id: doc.id, ...doc.data() } as Roommate);
       });
-      // Sort alphabetically
       rmData.sort((a, b) => a.name.localeCompare(b.name));
       setRoommates(rmData);
     });
@@ -62,13 +61,13 @@ export default function RoommatesPage() {
   };
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 p-4 md:p-0">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Manage Roommates</h1>
         <p className="text-gray-500 text-sm mt-1">Add the people you split expenses with.</p>
       </div>
 
-      <form onSubmit={handleAdd} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex gap-4">
+      <form onSubmit={handleAdd} className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row gap-4">
         <input 
           type="text" 
           value={newName}
@@ -80,7 +79,7 @@ export default function RoommatesPage() {
         <button 
           type="submit" 
           disabled={isAdding}
-          className="px-6 py-2 bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors"
+          className="w-full sm:w-auto px-6 py-2 bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors"
         >
           {isAdding ? 'Adding...' : 'Add'}
         </button>

@@ -1,3 +1,4 @@
+// app/dashboard/page.tsx
 'use client';
 
 import { useEffect } from 'react';
@@ -19,8 +20,11 @@ export default function DashboardPage() {
   if (loading || !user) return null;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">
+    // Added responsive padding (p-4 for mobile, md:p-8 for desktop) and a max-width container
+    <div className="space-y-6 p-4 md:p-8 w-full max-w-7xl mx-auto">
+      
+      {/* Scaled text to 2xl on mobile, 3xl on medium+ screens. Added break-words for long names. */}
+      <h1 className="text-2xl md:text-3xl font-bold text-gray-900 break-words">
         Welcome back, {user.displayName?.split(' ')[0]}!
       </h1>
       

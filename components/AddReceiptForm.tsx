@@ -21,11 +21,10 @@ export default function AddReceiptForm({ userId }: { userId: string }) {
         userId,
         storeName: store,
         amount: parseFloat(amount),
-        date, // Stored as YYYY-MM-DD string for easy sorting
+        date, 
         createdAt: serverTimestamp()
       });
       
-      // Reset form
       setStore('');
       setAmount('');
       setDate('');
@@ -37,7 +36,7 @@ export default function AddReceiptForm({ userId }: { userId: string }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-4">
+    <form onSubmit={handleSubmit} className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200 space-y-4">
       <h2 className="text-lg font-semibold text-gray-900">Add New Receipt</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -48,7 +47,7 @@ export default function AddReceiptForm({ userId }: { userId: string }) {
             required
             value={store}
             onChange={(e) => setStore(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+            className="w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
             placeholder="e.g. Loblaws"
           />
         </div>
@@ -61,7 +60,7 @@ export default function AddReceiptForm({ userId }: { userId: string }) {
             required
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+            className="w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
             placeholder="0.00"
           />
         </div>
@@ -73,7 +72,7 @@ export default function AddReceiptForm({ userId }: { userId: string }) {
             required
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+            className="w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
           />
         </div>
       </div>
@@ -81,7 +80,7 @@ export default function AddReceiptForm({ userId }: { userId: string }) {
       <button 
         type="submit" 
         disabled={isSubmitting}
-        className="px-4 py-2 bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors"
+        className="w-full md:w-auto px-6 py-3 md:py-2 bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors"
       >
         {isSubmitting ? 'Adding...' : 'Add Receipt'}
       </button>

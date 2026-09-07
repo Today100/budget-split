@@ -53,9 +53,9 @@ export default function Step2Manual() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Header Info */}
-      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Store Name</label>
           <input 
@@ -100,15 +100,15 @@ export default function Step2Manual() {
                   <div 
                     key={rm} 
                     onClick={() => togglePayer(rm)}
-                    className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="flex items-center px-3 py-3 md:py-2 hover:bg-gray-50 cursor-pointer transition-colors"
                   >
                     <input 
                       type="checkbox" 
                       readOnly
                       checked={receiptData.payers.includes(rm)}
-                      className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black cursor-pointer"
+                      className="w-5 h-5 md:w-4 md:h-4 text-black border-gray-300 rounded focus:ring-black cursor-pointer pointer-events-none"
                     />
-                    <span className="ml-2 text-sm text-gray-900">{rm}</span>
+                    <span className="ml-3 md:ml-2 text-sm text-gray-900">{rm}</span>
                   </div>
                 ))
               )}
@@ -117,44 +117,46 @@ export default function Step2Manual() {
         </div>
       </div>
 
-      {/* Line Items Table */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden overflow-x-auto">
-        <table className="w-full text-left text-sm min-w-[600px]">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="p-4 font-medium text-gray-600">Item Name</th>
-              <th className="p-4 font-medium text-gray-600 w-24">Qty</th>
-              <th className="p-4 font-medium text-gray-600 w-32">Unit Price</th>
-              <th className="p-4 font-medium text-gray-600 w-20 text-center">Taxed</th>
-              <th className="p-4 font-medium text-gray-600 w-24">Tax %</th>
-              <th className="p-4 font-medium text-gray-600 w-32 text-right">Final Price</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {receiptData.items.map((item, i) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                <td className="p-3">
-                  <input type="text" value={item.name} onChange={(e) => handleItemChange(i, 'name', e.target.value)} className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black" />
-                </td>
-                <td className="p-3">
-                  <input type="number" min="1" value={item.qty} onChange={(e) => handleItemChange(i, 'qty', Number(e.target.value))} className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black" />
-                </td>
-                <td className="p-3">
-                  <input type="number" step="0.01" value={item.unitPrice} onChange={(e) => handleItemChange(i, 'unitPrice', Number(e.target.value))} className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black" />
-                </td>
-                <td className="p-3 text-center">
-                  <input type="checkbox" checked={item.isTaxed} onChange={(e) => handleItemChange(i, 'isTaxed', e.target.checked)} className="w-4 h-4 cursor-pointer text-black focus:ring-black border-gray-300 rounded" />
-                </td>
-                <td className="p-3">
-                  <input type="number" disabled={!item.isTaxed} value={item.taxPercent} onChange={(e) => handleItemChange(i, 'taxPercent', Number(e.target.value))} className="w-full px-2 py-1 border border-gray-300 rounded disabled:bg-gray-100 disabled:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black" />
-                </td>
-                <td className="p-3 text-right font-medium">
-                  ${calculateFinalPrice(item).toFixed(2)}
-                </td>
+      {/* Line Items Table (Horizontally Scrollable on Mobile) */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm min-w-[650px]">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="p-3 md:p-4 font-medium text-gray-600">Item Name</th>
+                <th className="p-3 md:p-4 font-medium text-gray-600 w-20 md:w-24">Qty</th>
+                <th className="p-3 md:p-4 font-medium text-gray-600 w-28 md:w-32">Unit Price</th>
+                <th className="p-3 md:p-4 font-medium text-gray-600 w-20 text-center">Taxed</th>
+                <th className="p-3 md:p-4 font-medium text-gray-600 w-20 md:w-24">Tax %</th>
+                <th className="p-3 md:p-4 font-medium text-gray-600 w-28 md:w-32 text-right">Final</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {receiptData.items.map((item, i) => (
+                <tr key={item.id} className="hover:bg-gray-50">
+                  <td className="p-2 md:p-3">
+                    <input type="text" value={item.name} onChange={(e) => handleItemChange(i, 'name', e.target.value)} className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black" />
+                  </td>
+                  <td className="p-2 md:p-3">
+                    <input type="number" min="1" value={item.qty} onChange={(e) => handleItemChange(i, 'qty', Number(e.target.value))} className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black" />
+                  </td>
+                  <td className="p-2 md:p-3">
+                    <input type="number" step="0.01" value={item.unitPrice} onChange={(e) => handleItemChange(i, 'unitPrice', Number(e.target.value))} className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black" />
+                  </td>
+                  <td className="p-2 md:p-3 text-center">
+                    <input type="checkbox" checked={item.isTaxed} onChange={(e) => handleItemChange(i, 'isTaxed', e.target.checked)} className="w-5 h-5 cursor-pointer text-black focus:ring-black border-gray-300 rounded" />
+                  </td>
+                  <td className="p-2 md:p-3">
+                    <input type="number" disabled={!item.isTaxed} value={item.taxPercent} onChange={(e) => handleItemChange(i, 'taxPercent', Number(e.target.value))} className="w-full px-2 py-2 border border-gray-300 rounded disabled:bg-gray-100 disabled:text-gray-400 focus:outline-none focus:ring-1 focus:ring-black" />
+                  </td>
+                  <td className="p-2 md:p-3 text-right font-medium">
+                    ${calculateFinalPrice(item).toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         
         <div className="p-4 border-t border-gray-100">
           <button onClick={addItem} className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
@@ -163,16 +165,8 @@ export default function Step2Manual() {
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <button 
-          onClick={() => setStep(3)}
-          className="px-6 py-3 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors shadow-sm"
-        >
-          Move on to allocation →
-        </button>
-      </div>
-
-      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-2 text-sm mt-4">
+      {/* Totals Box */}
+      <div className="p-4 md:p-6 bg-gray-50 rounded-xl border border-gray-200 space-y-3 text-sm">
         <div className="flex justify-between text-gray-500">
           <span>Subtotal</span>
           <span>${subtotal.toFixed(2)}</span>
@@ -181,17 +175,21 @@ export default function Step2Manual() {
           <span>Tax</span>
           <span>${taxTotal.toFixed(2)}</span>
         </div>
-        <div className="flex justify-between font-bold text-lg text-gray-900 border-t border-gray-200 pt-2 mt-2">
+        <div className="flex justify-between font-bold text-lg md:text-xl text-gray-900 border-t border-gray-200 pt-3 mt-1">
           <span>Total</span>
           <span>${grandTotal.toFixed(2)}</span>
         </div>
       </div>
 
-      <button onClick={() => setStep(3)} className="w-full py-3 bg-black text-white rounded-lg font-bold mt-6">
-        Next: Assign Items
-      </button>
+      {/* Consolidated Next Button */}
+      <div className="flex justify-end pt-2">
+        <button 
+          onClick={() => setStep(3)}
+          className="w-full md:w-auto px-8 py-3.5 md:py-3 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors shadow-sm"
+        >
+          Next: Assign Items →
+        </button>
+      </div>
     </div>
-
-    
   );
 }

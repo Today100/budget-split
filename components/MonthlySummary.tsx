@@ -1,3 +1,4 @@
+// components/MonthlySummary.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -5,16 +6,11 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useGroup } from '../context/GroupContext';
 
-type MonthlySummaryProps = {
-  userId: string;
-};
-
 export default function MonthlySummary() {
   const { groupId } = useGroup();
   const [totalSpent, setTotalSpent] = useState(0);
   const [netSettlements, setNetSettlements] = useState<{from: string, to: string, amount: number}[]>([]);
   
-  // Default to the current month in YYYY-MM format
   const [selectedMonth, setSelectedMonth] = useState(() => new Date().toISOString().slice(0, 7));
 
   useEffect(() => {
@@ -28,7 +24,6 @@ export default function MonthlySummary() {
       snapshot.forEach((doc) => {
         const data = doc.data();
         
-        // Filter in-memory based on the selected month
         if (data.date && data.date.startsWith(selectedMonth)) {
           monthTotal += data.amount || 0;
 
@@ -71,9 +66,8 @@ export default function MonthlySummary() {
     });
 
     return () => unsubscribe();
-  }, [groupId, selectedMonth]); // Re-run when the month changes
+  }, [groupId, selectedMonth]);
 
-  // Format YYYY-MM to a readable string (e.g., "September 2026")
   const formatMonth = (yyyyMm: string) => {
     if (!yyyyMm) return '';
     const [year, month] = yyyyMm.split('-');
@@ -82,41 +76,39 @@ export default function MonthlySummary() {
   };
 
   return (
-    <div className="mb-8">
-      {/* Header & Month Picker */}
-      <div className="flex justify-between items-center mb-4">
+    <div className="mb-8 space-y-4">
+      {/* Header & Month Picker: Stacked on mobile */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
         <h2 className="text-lg font-bold text-gray-900">Summary</h2>
         <input 
           type="month" 
           value={selectedMonth}
           onChange={(e) => setSelectedMonth(e.target.value)}
-          className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-black cursor-pointer shadow-sm"
+          className="w-full sm:w-auto px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-black cursor-pointer shadow-sm"
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Spending Card */}
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">{formatMonth(selectedMonth)} Spending</h3>
-          <p className="text-4xl font-black text-gray-900 mt-2">${totalSpent.toFixed(2)}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <div className="bg-white p-5 md:p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center">
+          <h3 className="text-xs md:text-sm font-medium text-gray-500 uppercase tracking-wider">{formatMonth(selectedMonth)} Spending</h3>
+          <p className="text-3xl md:text-4xl font-black text-gray-900 mt-2">${totalSpent.toFixed(2)}</p>
         </div>
 
-        {/* Settlements Card */}
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-48">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Net Balances</h3>
+        <div className="bg-white p-5 md:p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col min-h-[12rem] md:h-48">
+          <h3 className="text-xs md:text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Net Balances</h3>
           <div className="flex-1 overflow-y-auto pr-2">
             {netSettlements.length === 0 ? (
               <p className="text-gray-400 text-sm mt-2">Everyone is settled up for this month.</p>
             ) : (
               <div className="space-y-3">
                 {netSettlements.map((s, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-sm border-b border-gray-50 pb-2 last:border-0">
-                    <div className="font-medium">
+                  <div key={idx} className="flex flex-wrap sm:flex-nowrap justify-between items-center text-sm border-b border-gray-50 pb-2 last:border-0 gap-2">
+                    <div className="font-medium break-words">
                       <span className="text-red-600">{s.from}</span>
                       <span className="text-gray-400 mx-2">owes</span>
                       <span className="text-green-600">{s.to}</span>
                     </div>
-                    <div className="font-bold text-gray-900">${s.amount.toFixed(2)}</div>
+                    <div className="font-bold text-gray-900 ml-auto">${s.amount.toFixed(2)}</div>
                   </div>
                 ))}
               </div>

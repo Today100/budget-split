@@ -10,13 +10,12 @@ import Step2Manual from '../../add/Step2Manual';
 import Step3Allocation from '../../add/Step3Allocation';
 import Step4Summary from '../../add/Step4Summary';
 
-// The router function that was missing
 function EditStepRouter() {
   const { step } = useAddReceipt();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center space-x-2 text-sm text-gray-500 mb-8">
+    <div className="max-w-5xl mx-auto space-y-6 p-4 md:p-8">
+      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 mb-6 md:mb-8">
         <span className={step >= 2 ? 'font-bold text-black' : ''}>1. Details</span>
         <span>→</span>
         <span className={step >= 3 ? 'font-bold text-black' : ''}>2. Allocation</span>

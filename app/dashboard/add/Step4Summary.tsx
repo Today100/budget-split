@@ -1,3 +1,4 @@
+// app/dashboard/add/Step4Summary.tsx
 'use client';
 
 import { useState } from 'react';
@@ -110,34 +111,36 @@ export default function Step4Summary() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex justify-between items-center">
+    <div className="space-y-6 md:space-y-8">
+      {/* Summary Header Card */}
+      <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">{receiptData.storeName || 'Unnamed Receipt'}</h2>
-          <p className="text-sm text-gray-500">{receiptData.date} • Paid by {payers.join(', ')}</p>
+          <h2 className="text-lg md:text-xl font-bold text-gray-900 break-words">{receiptData.storeName || 'Unnamed Receipt'}</h2>
+          <p className="text-xs md:text-sm text-gray-500 mt-1">{receiptData.date} • Paid by {payers.join(', ')}</p>
         </div>
-        <div className="text-2xl font-black text-gray-900">
+        <div className="text-2xl md:text-3xl font-black text-gray-900 self-end md:self-auto">
           ${totalCost.toFixed(2)}
         </div>
       </div>
 
+      {/* Settlements Box */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="bg-gray-50 p-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">Who owes who</h3>
+          <h3 className="font-semibold text-gray-900 text-sm md:text-base">Who owes who</h3>
         </div>
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           {settlements.length === 0 ? (
-            <p className="text-gray-500 text-center">Everything is settled equally!</p>
+            <p className="text-gray-500 text-center text-sm md:text-base">Everything is settled equally!</p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {settlements.map((settlement, idx) => (
-                <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
-                  <div className="font-medium text-gray-900">
-                    <span className="text-red-600">{settlement.from}</span>
-                    <span className="text-gray-400 mx-2">owes</span>
-                    <span className="text-green-600">{settlement.to}</span>
+                <div key={idx} className="flex flex-wrap sm:flex-nowrap items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-100 gap-2">
+                  <div className="font-medium text-gray-900 text-sm md:text-base">
+                    <span className="text-red-600 break-words">{settlement.from}</span>
+                    <span className="text-gray-400 mx-2 text-xs md:text-sm">owes</span>
+                    <span className="text-green-600 break-words">{settlement.to}</span>
                   </div>
-                  <div className="font-bold text-gray-900">
+                  <div className="font-bold text-gray-900 ml-auto text-sm md:text-base">
                     ${settlement.amount.toFixed(2)}
                   </div>
                 </div>
@@ -147,10 +150,11 @@ export default function Step4Summary() {
         </div>
       </div>
 
-      <div className="flex justify-between items-center">
+      {/* Final Action Buttons */}
+      <div className="flex flex-col-reverse md:flex-row justify-between items-center gap-3 md:gap-0 pt-2">
         <button 
           onClick={() => setStep(3)}
-          className="px-6 py-3 text-gray-600 font-medium hover:text-black transition-colors disabled:opacity-50"
+          className="w-full md:w-auto px-6 py-3.5 md:py-3 text-gray-600 font-medium hover:text-black hover:bg-gray-100 md:hover:bg-transparent rounded-lg md:rounded-none transition-colors disabled:opacity-50"
           disabled={isSubmitting}
         >
           ← Back to Allocation
@@ -158,9 +162,16 @@ export default function Step4Summary() {
         <button 
           onClick={handleGenerate}
           disabled={isSubmitting}
-          className="px-8 py-3 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors disabled:bg-gray-400 shadow-sm"
+          className="w-full md:w-auto px-8 py-3.5 md:py-3 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors disabled:bg-gray-400 shadow-sm flex items-center justify-center gap-2"
         >
-          {isSubmitting ? 'Saving...' : 'Generate & Save ✓'}
+          {isSubmitting ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Saving...
+            </>
+          ) : (
+            'Generate & Save ✓'
+          )}
         </button>
       </div>
     </div>

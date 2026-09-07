@@ -34,7 +34,6 @@ export default function ReceiptsPage() {
         ...doc.data()
       })) as Receipt[];
       
-      // Sort in-memory (newest first) to avoid needing a Firestore composite index
       fetched.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
       setReceipts(fetched);
@@ -55,17 +54,17 @@ export default function ReceiptsPage() {
   };
 
   if (isLoading) {
-    return <div className="text-gray-500 animate-pulse">Loading history...</div>;
+    return <div className="text-gray-500 animate-pulse p-4">Loading history...</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="border-b border-gray-200 pb-4 flex justify-between items-end">
+    <div className="space-y-6 p-4 md:p-8 max-w-7xl mx-auto">
+      <div className="border-b border-gray-200 pb-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">All Receipts</h1>
-          <p className="text-gray-500 mt-2">A complete ledger of your household expenses.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">All Receipts</h1>
+          <p className="text-gray-500 mt-2 text-sm md:text-base">A complete ledger of your household expenses.</p>
         </div>
-        <div className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+        <div className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full self-start md:self-auto">
           {receipts.length} total entries
         </div>
       </div>
@@ -76,51 +75,53 @@ export default function ReceiptsPage() {
             No receipts found. Time to go shopping!
           </div>
         ) : (
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="p-4 font-medium text-gray-600">Date</th>
-                <th className="p-4 font-medium text-gray-600">Store</th>
-                <th className="p-4 font-medium text-gray-600">Paid By</th>
-                <th className="p-4 font-medium text-gray-600">Amount</th>
-                <th className="p-4 font-medium text-gray-600 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {receipts.map((receipt) => (
-                <tr key={receipt.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="p-4 text-gray-500 whitespace-nowrap">
-                    {receipt.date}
-                  </td>
-                  <td className="p-4 font-medium text-gray-900">
-                    {receipt.storeName}
-                  </td>
-                  <td className="p-4 text-gray-600">
-                    {receipt.payers?.join(', ') || 'Unknown'}
-                  </td>
-                  <td className="p-4 font-bold text-gray-900">
-                    ${receipt.amount?.toFixed(2)}
-                  </td>
-                  <td className="p-4 text-right">
-                    <div className="flex justify-end gap-4">
-                      <Link 
-                        href={`/dashboard/add?id=${receipt.id}`}
-                        className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
-                      >
-                        Edit
-                      </Link>
-                      <button 
-                        onClick={() => handleDelete(receipt.id)}
-                        className="text-red-500 hover:text-red-700 font-medium transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm min-w-[600px]">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="p-4 font-medium text-gray-600">Date</th>
+                  <th className="p-4 font-medium text-gray-600">Store</th>
+                  <th className="p-4 font-medium text-gray-600">Paid By</th>
+                  <th className="p-4 font-medium text-gray-600">Amount</th>
+                  <th className="p-4 font-medium text-gray-600 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {receipts.map((receipt) => (
+                  <tr key={receipt.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="p-4 text-gray-500 whitespace-nowrap">
+                      {receipt.date}
+                    </td>
+                    <td className="p-4 font-medium text-gray-900">
+                      {receipt.storeName}
+                    </td>
+                    <td className="p-4 text-gray-600">
+                      {receipt.payers?.join(', ') || 'Unknown'}
+                    </td>
+                    <td className="p-4 font-bold text-gray-900">
+                      ${receipt.amount?.toFixed(2)}
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex justify-end gap-4">
+                        <Link 
+                          href={`/dashboard/add?id=${receipt.id}`}
+                          className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                        >
+                          Edit
+                        </Link>
+                        <button 
+                          onClick={() => handleDelete(receipt.id)}
+                          className="text-red-500 hover:text-red-700 font-medium transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

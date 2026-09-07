@@ -42,12 +42,11 @@ type AddReceiptContextType = {
   isScanning: boolean;
   simulateScan: (file: File) => void;
   roommates: string[];
-  receiptId: string | null; // <-- NEW
+  receiptId: string | null;
 };
 
 const AddReceiptContext = createContext<AddReceiptContextType | undefined>(undefined);
 
-// Update the Provider props to accept initialData and receiptId
 export function AddReceiptProvider({ children, initialData, receiptId }: { children: ReactNode; initialData?: ReceiptState; receiptId?: string; }) {
   const { user } = useAuth();
   const { groupId } = useGroup();
@@ -74,7 +73,7 @@ export function AddReceiptProvider({ children, initialData, receiptId }: { child
       setRoommates(names);
     });
     return () => unsubscribe();
-  }, [user]);
+  }, [groupId]); // Fixed dependency array
 
   const simulateScan = async (file: File) => {
     setIsScanning(true);
