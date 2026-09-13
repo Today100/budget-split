@@ -3,9 +3,12 @@
 
 import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
+
+// Pull the comma-separated string from the environment and convert it to an array
+const ALLOWED_EMAILS = process.env.NEXT_PUBLIC_ALLOWED_EMAILS?.split(',') || [];
 
 export default function SignInPage() {
   const [error, setError] = useState<string>('');
@@ -32,7 +35,14 @@ export default function SignInPage() {
       setError('');
       
       // 3. Await resolution
-      await signInPromise;
+      const result = await signInPromise;
+      const userEmail = result.user.email;
+
+      // 4. Verify against the environment variable whitelist
+      if (!userEmail || !ALLOWED_EMAILS.includes(userEmail)) {
+        await signOut(auth); // Immediately sign them out of the Firebase session
+        throw new Error("Access denied. This household is private.");
+      }
       
       router.push('/dashboard');
     } catch (err: any) {
@@ -43,14 +53,12 @@ export default function SignInPage() {
   };
 
   return (
-    // Added p-4 so the container doesn't touch the screen edges on small phones
     <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md p-6 md:p-8 space-y-6 bg-white rounded-xl shadow-sm border border-gray-200 text-center">
         <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Receipt Manager</h1>
         <p className="text-sm text-gray-500">Sign in to sync your data</p>
         
         {isProcessing ? (
-          // Increased vertical padding (py-3) for mobile consistency
           <div className="py-3 px-4 w-full text-sm font-medium text-gray-500 bg-gray-100 rounded-lg animate-pulse">
             Authenticating...
           </div>
