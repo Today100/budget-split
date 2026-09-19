@@ -2,6 +2,8 @@
 
 A full-stack, mobile-first web application designed to help roommates seamlessly manage household expenses, split receipts, and track who owes whom. Built with Next.js and Firebase, it features real-time syncing, a debt-simplification algorithm, and an intuitive 4-step receipt parsing flow.
 
+**NOTE**: The site only permits certain Google accounts to log in because it uses the free Gemini API, which has usage limits.
+
 ## ✨ Features
 
 * **🔒 Secure, Restrictable Authentication**
